@@ -1,8 +1,10 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
 import { AppDataSource } from "./db";
 import userRoutes from "./routes/userRoutes";
+import dotenv from "dotenv";
 
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,7 +21,7 @@ AppDataSource.initialize()
 // Routes
 app.use("/api/users", userRoutes);
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (req, res) => {
     res.send("Hello from Back-end!");
 });
 

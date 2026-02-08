@@ -14,6 +14,6 @@ export class User {
     @Column()
     password: string;
 
-    @Column({ nullable: true })
-    url: string;
+    // @Column({ nullable: true })
+    // url: string;
 }

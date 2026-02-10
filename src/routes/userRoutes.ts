@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 import { Request, Response, Router } from "express";
 import { AppDataSource } from "../db";
 import { User } from "../entities/user";
 import bcrypt from "bcryptjs";
 import { authMiddleware } from "../middlewares/authmiddleware";
 import { upload } from '../middlewares/upload';
+import path from 'path';
 
 const router = Router();
 
@@ -144,52 +146,73 @@ router.put("/profile/change-password", authMiddleware, async (req: Request, res:
 
 
 // 🔹 Delete avatar
-// router.delete("/profile/avatar/delete", authMiddleware, async (req: Request, res: Response) => {
-//   const userId = req.user?.userId;
-//   if (!userId) return res.status(401).json({ message: "User not authenticated" });
+router.delete("/profile/avatar/delete", authMiddleware, async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: "User not authenticated" });
 
-//   const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
-//   if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await AppDataSource.getRepository(User).findOneBy({ id: userId });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-//   if (user.avatar) {
-//     const avatarPath = path.join(__dirname, "../", user.avatar); // path เต็ม
-//     if (fs.existsSync(avatarPath)) {
-//       fs.unlinkSync(avatarPath);
+    if (user.avatar) {
+        const avatarPath = path.join(__dirname, "../", user.avatar); // path เต็ม
+        if (fs.existsSync(avatarPath)) {
+            fs.unlinkSync(avatarPath);
+        }
+    }
+
+    user.avatar = null;
+    await AppDataSource.getRepository(User).save(user);
+
+    res.json({ message: "Avatar deleted successfully" });
+});
+
+// router.get("/:userId/followers", async (req, res) => {
+//     const { userId } = req.params;
+
+//     try {
+//         const user = await AppDataSource.getRepository(User).findOne({
+//             where: { id: parseInt(userId) },
+//             relations: ["followers", "followers.follower"] // join ข้อมูลคน follow
+//         });
+
+//         if (!user) return res.status(404).json({ message: "User not found" });
+
+//         const followers = user.followers.map(f => ({
+//             id: f.follower.id,
+//             name: f.follower.name,
+//             email: f.follower.email
+//         }));
+
+//         res.json(followers);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: "Server error" });
 //     }
-//   }
-
-//   user.avatar = null;
-//   await AppDataSource.getRepository(User).save(user);
-
-//   res.json({ message: "Avatar deleted successfully" });
 // });
 
-// router.post("/profile/follow/:userId", authMiddleware, async (req: Request, res: Response) => {
-//     const followerId = req.user?.userId;
-//     const followingId = parseInt(req.params.userId);
 
-//     if (followerId === followingId) return res.status(400).json({ message: "Cannot follow yourself" });
+// router.get("/:userId/following", async (req, res) => {
+//     const { userId } = req.params;
 
-//     const repo = AppDataSource.getRepository(Follow);
-//     const existing = await repo.findOne({ where: { follower: { id: followerId }, following: { id: followingId } } });
-//     if (existing) return res.status(400).json({ message: "Already following" });
+//     try {
+//         const user = await AppDataSource.getRepository(User).findOne({
+//             where: { id: parseInt(userId) },
+//             relations: ["following", "following.following"] // join ข้อมูลคนที่ user follow
+//         });
 
-//     const follow = repo.create({ follower: { id: followerId }, following: { id: followingId } });
-//     await repo.save(follow);
+//         if (!user) return res.status(404).json({ message: "User not found" });
 
-//     res.json({ message: "User followed successfully" });
-// });
+//         const following = user.following.map(f => ({
+//             id: f.following.id,
+//             name: f.following.name,
+//             email: f.following.email
+//         }));
 
-// router.post("/profile/unfollow/:userId", authMiddleware, async (req: Request, res: Response) => {
-//     const followerId = req.user?.userId;
-//     const followingId = parseInt(req.params.userId);
-
-//     const repo = AppDataSource.getRepository(Follow);
-//     const existing = await repo.findOne({ where: { follower: { id: followerId }, following: { id: followingId } } });
-//     if (!existing) return res.status(400).json({ message: "Not following this user" });
-
-//     await repo.remove(existing);
-//     res.json({ message: "User unfollowed successfully" });
+//         res.json(following);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: "Server error" });
+//     }
 // });
 
 // 🔹 List followers

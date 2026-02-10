@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 @Entity()
 export class User {
@@ -14,9 +14,8 @@ export class User {
     @Column()
     password: string;
 
-    @Column({ nullable: true })
-    avatar: string;
-
+    @Column({ type: "varchar", length: 255, nullable: true })
+    avatar: string | null;
 
     @Column({ nullable: true })
     bio?: string;
@@ -41,4 +40,12 @@ export class User {
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
+
+    // // คนที่ follow user นี้
+    // @OneToMany(() => Follow, follow => follow.following)
+    // followers: Follow[];
+
+    // // คนที่ user นี้ follow
+    // @OneToMany(() => Follow, follow => follow.follower)
+    // following: Follow[];
 }

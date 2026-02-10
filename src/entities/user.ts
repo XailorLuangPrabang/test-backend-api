@@ -40,12 +40,4 @@ export class User {
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     updatedAt: Date;
-
-    // // คนที่ follow user นี้
-    // @OneToMany(() => Follow, follow => follow.following)
-    // followers: Follow[];
-
-    // // คนที่ user นี้ follow
-    // @OneToMany(() => Follow, follow => follow.follower)
-    // following: Follow[];
 }

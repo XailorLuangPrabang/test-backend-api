@@ -172,16 +172,16 @@ router.delete("/profile/avatar/delete", authMiddleware, async (req: Request, res
 //     try {
 //         const user = await AppDataSource.getRepository(User).findOne({
 //             where: { id: parseInt(userId) },
-//             relations: ["followers", "followers.follower"] // join ข้อมูลคน follow
+//             relations: ["followers", "followers.follower"]
 //         });
 
 //         if (!user) return res.status(404).json({ message: "User not found" });
 
-//         const followers = user.followers.map(f => ({
-//             id: f.follower.id,
-//             name: f.follower.name,
-//             email: f.follower.email
-//         }));
+//         const followers = (user.followers || []).map(f => ({
+//             id: f.follower?.id,
+//             name: f.follower?.name,
+//             email: f.follower?.email
+//         })).filter(f => f.id != null);
 
 //         res.json(followers);
 //     } catch (err) {
@@ -191,13 +191,15 @@ router.delete("/profile/avatar/delete", authMiddleware, async (req: Request, res
 // });
 
 
+
+
 // router.get("/:userId/following", async (req, res) => {
 //     const { userId } = req.params;
 
 //     try {
 //         const user = await AppDataSource.getRepository(User).findOne({
 //             where: { id: parseInt(userId) },
-//             relations: ["following", "following.following"] // join ข้อมูลคนที่ user follow
+//             relations: ["following", "following.following"]
 //         });
 
 //         if (!user) return res.status(404).json({ message: "User not found" });
@@ -215,22 +217,65 @@ router.delete("/profile/avatar/delete", authMiddleware, async (req: Request, res
 //     }
 // });
 
-// 🔹 List followers
-// router.get("/profile/followers", authMiddleware, async (req: Request, res: Response) => {
-//     const userId = req.user?.userId;
-//     const repo = AppDataSource.getRepository(Follow);
 
-//     const followers = await repo.find({ where: { following: { id: userId } }, relations: ["follower"] });
-//     res.json({ followers: followers.map(f => f.follower) });
+// router.post("/:userId/follow", async (req, res) => {
+//     const { userId } = req.params; // user ที่จะถูก follow
+//     const { followerId } = req.body; // user ที่ follow
+
+//     try {
+//         const userToFollow = await AppDataSource.getRepository(User).findOneBy({ id: parseInt(userId) });
+//         const followerUser = await AppDataSource.getRepository(User).findOneBy({ id: parseInt(followerId) });
+
+//         if (!userToFollow || !followerUser)
+//             return res.status(404).json({ message: "User not found" });
+
+//         // ตรวจสอบว่า follow ซ้ำหรือยัง
+//         const existing = await AppDataSource.getRepository(Follow).findOne({
+//             where: {
+//                 follower: { id: followerUser.id },
+//                 following: { id: userToFollow.id }
+//             }
+//         });
+
+//         if (existing) return res.status(400).json({ message: "Already following" });
+
+//         const follow = new Follow();
+//         follow.follower = followerUser;
+//         follow.following = userToFollow;
+
+//         await AppDataSource.getRepository(Follow).save(follow);
+
+//         res.json({ message: "Followed successfully" });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: "Server error" });
+//     }
 // });
 
-// 🔹 List following
-// router.get("/profile/following", authMiddleware, async (req: Request, res: Response) => {
-//     const userId = req.user?.userId;
-//     const repo = AppDataSource.getRepository(Follow);
+// router.delete("/:userId/unfollow", async (req, res) => {
+//     const { userId } = req.params; // user ที่ถูก unfollow
+//     const { followerId } = req.body; // user ที่ unfollow
 
-//     const following = await repo.find({ where: { follower: { id: userId } }, relations: ["following"] });
-//     res.json({ following: following.map(f => f.following) });
+//     try {
+//         const followRepo = AppDataSource.getRepository(Follow);
+
+//         const follows = await followRepo.findOne({
+//             where: {
+//                 follower: { id: parseInt(followerId) },
+//                 following: { id: parseInt(userId) }
+//             }
+//         });
+
+//         if (!follows) return res.status(404).json({ message: "Follow record not found" });
+
+//         await followRepo.remove(follows);
+
+//         res.json({ message: "Unfollowed successfully" });
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ message: "Server error" });
+//     }
 // });
+
 
 export default router;

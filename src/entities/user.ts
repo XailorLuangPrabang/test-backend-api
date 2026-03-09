@@ -1,4 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Order } from "./order";
+import { Product } from "./product";
 
 @Entity()
 export class User {
@@ -14,11 +16,8 @@ export class User {
     @Column()
     password: string;
 
-    @Column({ type: "varchar", length: 255, nullable: true })
-    avatar: string | null;
-
     @Column({ nullable: true })
-    bio?: string;
+    avatar: string;
 
     @Column({ nullable: true })
     phone?: string;
@@ -27,13 +26,13 @@ export class User {
     address?: string;
 
     @Column({ default: "user" })
-    role: string;
+    role: string; // user, admin
 
-    @Column({ default: 0 })
-    followersCount: number;
+    @OneToMany(() => Order, (order) => order.user)
+    orders: Order[];
 
-    @Column({ default: 0 })
-    followingCount: number;
+    @OneToMany(() => Product, (product) => product.seller)
+    products: Product[];
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     createdAt: Date;

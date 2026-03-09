@@ -20,7 +20,7 @@ app.use("/uploads", express.static("src/uploads"));
 // Connect DB
 AppDataSource.initialize()
     .then(() => console.log("DB connected"))
-    .catch(err => console.log("DB connection error:", err));
+    .catch(err => console.log("DB connection Error:", err));
 
 // Routes
 app.use("/api/users", userRoutes);
